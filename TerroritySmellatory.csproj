@@ -1,0 +1,188 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>false</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>TerroritySmellatory</RootNamespace>
+    <AssemblyName>TerroritySmellatory</AssemblyName>
+    <Description>Admin-marked multiplayer territories: set the rules in a small panel, mark the ground with Infinity Hammer, and every client enforces them.</Description>
+
+    <!-- ONE source of truth for the version (the Njord pattern). TSVersion flows into the generated
+         TSBuild.Version constant that BepInPlugin reads, the assembly's AssemblyVersion/FileVersion,
+         HexiumDist/manifest.json and the name of the packed zip. Bump it here and nowhere else.
+
+         TSSyncFloor is ServerSync's MinimumRequiredVersion, and deliberately NOT the same number:
+         pinning it to the build version disconnects every player on every build. Raise it only when an
+         older client would get something wrong against a newer server - a synced config entry renamed
+         or retyped, or a wire format an older reader cannot skip. Appending a field is safe for the WIRE
+         (records are length-prefixed and versioned, Core/Territory.cs, so an older reader skips it), but
+         it still needs a floor raise whenever an older client would enforce or show something wrong
+         without it, as 0.2.0's parts do. -->
+    <TSVersion>0.4.3</TSVersion>
+    <!-- 0.3.0: the runic barrier is enforced by whichever game simulates a creature (its ZDO owner) and by a
+         visitor's own game; a 0.2.x client reads the new flags as nothing and would let the monsters it owns,
+         and itself, walk straight in.
+         (0.2.0 raised it because a 0.1.x reader would enforce only a combined territory's FIRST part; 0.1.1
+         because the building rule runs on whichever game owns the piece.) -->
+    <!-- 0.3.1: auto-closing doors (TerritoryFlags.AutoCloseDoors, bit 13). A 0.3.0 admin's panel does not know the bit and
+         its CleanFlags would strip it from every territory it saves a rule change to. -->
+    <!-- 0.3.2: nesting. The runic barrier now holds only the ground its territory governs (a town inside a barrier territory is no
+         longer sealed in with it), which every game enforces for itself - a 0.3.1 client would still throw a visitor out of a
+         public town. And MapNameOnly (bit 14): a 0.3.1 admin's panel does not know the bit and its CleanFlags would strip it from every
+         territory it saves a rule change to, and a 0.3.1 client would draw the outline the flag is there to leave out. -->
+    <!-- 0.4.0: sub-territories. Every game decides for itself which territory governs a spot, and a sub-territory now governs
+         its own ground over the ones it sits inside (Inheritance.ChildrenFirst): a 0.3.x client would order them by size and
+         priority and disagree with the server and everyone else about who is in a town. And an admin on 0.3.x who saved a
+         sub-territory's rules would send a record with no parent and no follow marks (record 2), which the server can only read as
+         "take this territory out of its parent and keep these values as its own" - the link would be lost from the panel. -->
+    <TSSyncFloor>0.4.0</TSSyncFloor>
+    <Version>$(TSVersion)</Version>
+
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+
+    <OutputPath>bin/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <!-- CS8632: ServerSync.cs carries nullable annotations and is compiled in with nullable off. -->
+    <NoWarn>CS8632</NoWarn>
+  </PropertyGroup>
+
+  <!-- The off-game test harness has its own project and its own Unity/ZPackage stubs; the SDK would
+       otherwise glob them into the plugin (pattern 20 in MASTER_IMPLEMENTATIONS). -->
+  <ItemGroup>
+    <Compile Remove="tests/**" />
+    <None Remove="tests/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Private members are called directly through the publicizer, never through reflection strings,
+         so a game update that renames one is a BUILD error here instead of a silent runtime no-op. -->
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
+    <Reference Include="assembly_valheim">
+      <HintPath>..\libs-Tools\assembly_valheim.dll</HintPath>
+      <Publicize>true</Publicize>
+      <Private>false</Private>
+    </Reference>
+    <!-- Localization (the entry banner's subtitle): Localization.instance lives in assembly_guiutils. -->
+    <Reference Include="assembly_guiutils">
+      <HintPath>..\libs-Tools\assembly_guiutils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>..\libs-Tools\assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Splatform">
+      <HintPath>..\libs-Tools\Splatform.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- The territory file (Net/TerritoryJson.cs), server-side only. Private=false like every reference here -
+         never bundled: Valheim 1.0 ships Newtonsoft.Json 13.0.2 in BOTH Managed folders and the
+         ValheimModding-JsonDotNET package (declared in HexiumDist/manifest.json, as Fatty, VikingOS,
+         Wonderland and TheEye do) installs 13.0.3. All are AssemblyVersion 13.0.0.0, so this binds to
+         whichever is present (libs-Tools/REFERENCE-DLL-PROVENANCE.md). -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\libs-Tools\Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>..\libs-Tools\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>..\libs-Tools\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\libs-Tools\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\libs-Tools\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\libs-Tools\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\libs-Tools\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\libs-Tools\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\libs-Tools\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\libs-Tools\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\libs-Tools\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>..\libs-Tools\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared source, compiled in from libs-Tools rather than copied (pattern 27: a prebuilt or
+         per-project copy is how a stale ServerSync or four drifting window looks happen). -->
+    <Compile Include="..\libs-Tools\ServerSync.cs" />
+    <Compile Include="..\libs-Tools\SharedUI\GiltFrameTheme.cs" />
+    <Compile Include="..\libs-Tools\SharedUI\UIFocus.cs" />
+  </ItemGroup>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       VERSION GENERATION
+       Emits the version constants as C# so nothing has to be kept in step by hand. Written into obj/
+       rather than the source tree: it is build output, and a generated file sitting next to
+       hand-written ones invites someone to edit it.
+       ───────────────────────────────────────────────────────────── -->
+  <Target Name="TSGenerateVersion" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <TSVersionFile>$(IntermediateOutputPath)TSVersion.g.cs</TSVersionFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <TSVersionLine Include="// &lt;auto-generated /&gt; Generated by TerroritySmellatory.csproj. Do not edit." />
+      <TSVersionLine Include="// Change TSVersion / TSSyncFloor in TerroritySmellatory.csproj instead." />
+      <TSVersionLine Include="namespace TerroritySmellatory" />
+      <TSVersionLine Include="{" />
+      <TSVersionLine Include="    internal static class TSBuild" />
+      <TSVersionLine Include="    {" />
+      <TSVersionLine Include="        internal const string Version = &quot;$(TSVersion)&quot;%3B" />
+      <TSVersionLine Include="        internal const string SyncFloor = &quot;$(TSSyncFloor)&quot;%3B" />
+      <TSVersionLine Include="    }" />
+      <TSVersionLine Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(TSVersionFile)" Lines="@(TSVersionLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(TSVersionFile)" />
+      <FileWrites Include="$(TSVersionFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       FOLD ("hex fold")
+       Stamps the manifest, stages the DLL into HexiumDist/plugins and writes
+       HexiumDist/TerroritySmellatory-v$(TSVersion).zip. Runs on every build so the package can never
+       be a build behind the DLL. LOCAL only - it never publishes anywhere.
+       ───────────────────────────────────────────────────────────── -->
+  <Target Name="TSFold" AfterTargets="Build" Condition="'$(TSSkipFold)' != 'true'">
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/tools/fold.py&quot; --version $(TSVersion) --dist &quot;$(MSBuildProjectDirectory)/HexiumDist&quot; --dll &quot;$(MSBuildProjectDirectory)/$(OutputPath)$(AssemblyName).dll&quot;" ContinueOnError="true" />
+  </Target>
+
+</Project>

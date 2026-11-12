@@ -1,0 +1,24 @@
+# Added 2026-11-12 with the first local snapshot. Same rules as the other Wubarrk mod repos:
+# build output and release artefacts are reproducible, so they stay out of git.
+[Bb]in/
+[Oo]bj/
+.vs/
+.idea/
+*.user
+*.suo
+*.pdb
+__pycache__/
+node_modules/
+
+# Release artefacts: produced by a build plus the hex fold. The authored HexiumDist files
+# (manifest.json, README.md, CHANGELOG.md, icon.png) stay tracked.
+*.zip
+HexiumDist/plugins/*.dll
+ThunderstoreDist/plugins/*.dll
+HexiumDist/*-v*/
+
+# Machine-local
+.env
+.claude/settings.local.json
+.claude/worktrees/
+*.log

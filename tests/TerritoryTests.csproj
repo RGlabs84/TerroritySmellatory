@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Off-game harness (MASTER_IMPLEMENTATIONS pattern 20): compiles the mod's REAL source for the parts
+       that fail silently - shape maths, precedence, the versioned wire format, and Infinity Hammer's
+       command substitution - against small stubs for the Unity and Valheim types they touch.
+       Run from the mod folder with dotnet run, Release configuration, project tests/TerritoryTests.csproj
+       (the command line is in the README; an XML comment cannot hold a double dash). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>TerroritySmellatory.Tests</RootNamespace>
+    <NoWarn>CS8632;CS0649</NoWarn>
+  </PropertyGroup>
+
+  <!-- tests/e2e is the in-game rig (its own BepInEx project); nothing of it belongs in this harness. -->
+  <ItemGroup>
+    <Compile Remove="e2e/**" />
+    <None Remove="e2e/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Newtonsoft 13.0.3 - the same version the game's JsonDotNET dependency installs (libs-Tools keeps that
+         .NET Framework build for the mod). The harness takes the package's net6.0 build of the same release,
+         because the Framework build asks .NET 8 for System.Security.Permissions at its first contract. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../Core/TerritoryShape.cs" Link="Mod/TerritoryShape.cs" />
+    <Compile Include="../Core/Territory.cs" Link="Mod/Territory.cs" />
+    <Compile Include="../Core/TerritoryIndex.cs" Link="Mod/TerritoryIndex.cs" />
+    <Compile Include="../Core/Inheritance.cs" Link="Mod/Inheritance.cs" />
+    <Compile Include="../Core/TerritoryGround.cs" Link="Mod/TerritoryGround.cs" />
+    <Compile Include="../Core/TerritoryEdits.cs" Link="Mod/TerritoryEdits.cs" />
+    <Compile Include="../Net/Protocol.cs" Link="Mod/Protocol.cs" />
+    <Compile Include="../Net/SnapshotParts.cs" Link="Mod/SnapshotParts.cs" />
+    <Compile Include="../Net/TerritoryJson.cs" Link="Mod/TerritoryJson.cs" />
+    <Compile Include="../Integration/PlacementArgs.cs" Link="Mod/PlacementArgs.cs" />
+    <Compile Include="../Visuals/OutlineGeometry.cs" Link="Mod/OutlineGeometry.cs" />
+    <Compile Include="../Visuals/UnionOutlineGeometry.cs" Link="Mod/UnionOutlineGeometry.cs" />
+    <Compile Include="../Rules/BannerPlan.cs" Link="Mod/BannerPlan.cs" />
+    <Compile Include="../Rules/BarrierMath.cs" Link="Mod/BarrierMath.cs" />
+    <Compile Include="../Rules/DoorMath.cs" Link="Mod/DoorMath.cs" />
+    <Compile Include="../Visuals/BarrierPattern.cs" Link="Mod/BarrierPattern.cs" />
+    <Compile Include="../Visuals/BarrierRuneGlyphs.cs" Link="Mod/BarrierRuneGlyphs.cs" />
+    <Compile Include="../Visuals/ExploredBits.cs" Link="Mod/ExploredBits.cs" />
+    <Compile Include="../Visuals/NameFit.cs" Link="Mod/NameFit.cs" />
+    <Compile Include="../UI/PanelMath.cs" Link="Mod/PanelMath.cs" />
+  </ItemGroup>
+
+</Project>
