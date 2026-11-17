@@ -21,13 +21,14 @@ namespace TerroritySmellatory
         /// <summary>Only members may use doors, chests, portals, signs, stands, stations and the like.</summary>
         AccessProtect = 1 << 1,
 
-        /// <summary>Only members may pick crops, berries and other pickables.</summary>
+        /// <summary>Only members may pick crops, berries and other pickables, or mine world pieces where StructureProtect is on.</summary>
         HarvestProtect = 1 << 2,
 
         /// <summary>
         /// No hit harms a building here, whoever lands it: creatures, fire and every player, members and admins included
         /// (Rules/WorldRules.cs refuses the damage RPC outright). A piece still comes down with the hammer, and weather
-        /// and loss of support still apply.
+        /// and loss of support still apply. 0.5.1: a pickaxe or axe hit on a piece no player built (black marble,
+        /// grausten, ruins) is mining, and goes through for whoever HarvestProtect allows (TSConfig.MineWorldPieces).
         /// </summary>
         StructureProtect = 1 << 3,
 

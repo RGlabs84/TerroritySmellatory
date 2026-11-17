@@ -60,6 +60,7 @@ namespace TerroritySmellatory
         // 1 - Server (locked to the server's value)
         internal static ConfigEntry<bool> RequireClientMod;
         internal static ConfigEntry<bool> AdminsBypassProtection;
+        internal static ConfigEntry<bool> MineWorldPieces;
         internal static ConfigEntry<float> MaxHalfExtent;
         internal static ConfigEntry<int> MaxTerritories;
         internal static ConfigEntry<int> MaxParts;
@@ -110,6 +111,10 @@ namespace TerroritySmellatory
             AdminsBypassProtection = cfg.Bind("1 - Server", "AdminsBypassProtection", true,
                 "Server admins (adminlist.txt, as the SERVER decides it) are never stopped by a territory's protections. Admin status is told to each client by the server; a client never decides it for itself.");
             Sync.AddConfigEntry(AdminsBypassProtection);
+
+            MineWorldPieces = cfg.Bind("1 - Server", "MineWorldPieces", true,
+                "Inside a territory where 'Buildings cannot be damaged', pieces no player built - dvergr black marble, Ashlands grausten, ruins, anything baked into the world - can still be mined or chopped with a pickaxe or an axe, by the people the territory's Harvesting rule allows: everyone when it is off, the owner and members when it is on. Anything a player built stays protected whatever this says, and so does every hit from a creature, fire or another weapon. Turn it off where buildings are baked into the world (towns placed by world generation have no builder and count as world pieces). Ore veins and rocks (copper, tin, OreMines' nodes...) are never protected by the rule and need no setting.");
+            Sync.AddConfigEntry(MineWorldPieces);
 
             MaxHalfExtent = cfg.Bind("1 - Server", "MaxRadius", 600f,
                 new ConfigDescription("Largest radius (or half-width) a territory may have, in metres. The server clamps every placement to it. Raise it for a continent or a region marked in the game (up to 100 km); a territory read from the world's file is held to 100 km whatever this says, and is never shrunk by lowering it.",

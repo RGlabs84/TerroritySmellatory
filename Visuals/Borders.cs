@@ -35,7 +35,9 @@ namespace TerroritySmellatory
         internal static void Tick()
         {
             Player player = Player.m_localPlayer;
-            if (player == null || !Wanted(player) || !TerritoryIndex.Any)
+            // In a dungeon (Character.InInterior: y > 3000) there is no ground to mark: the segments' rays land on the
+            // dungeon's own floor and walls and cut a line through it.
+            if (player == null || player.InInterior() || !Wanted(player) || !TerritoryIndex.Any)
             {
                 HideAll();
                 return;

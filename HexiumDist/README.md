@@ -71,7 +71,7 @@ The guards are the town guards of ValtimaOnline - the same bodies, the same atge
 | 🚪 **Doors, chests & stations** | only members may use doors, chests, portals, signs, item and armour stands, fermenters, beehives and the rest of what a ward locks |
 | 🌾 **Harvesting** | only members may pick crops, berries and other pickables. Vanilla wards cannot do this. |
 | ⏱️ **Doors close by themselves** | a door or gate left open inside shuts after a few seconds, never in the face of a player standing next to it |
-| 🧱 **Buildings cannot be damaged** | no hit harms them: creatures, fire and every player, members and admins included. Take a piece down with the hammer instead. |
+| 🧱 **Buildings cannot be damaged** | no hit harms what players built: creatures, fire and every player, members and admins included. Take a piece down with the hammer instead. World pieces - black marble, grausten, ruins - can still be mined with a pickaxe or axe, by everyone or (with *Harvesting* on) members only. |
 | 👹 **No monster spawns** | no hostile world spawns, raid spawns, spawn points or nests. Deer, boars, birds and fish still spawn. |
 | 🔷 **Runic barrier** | monsters cannot walk in (chapter II) |
 | 🪓 **Guards** | armoured guards posted inside, who come when called (new, above) |
@@ -325,6 +325,7 @@ All safe to leave alone. `BepInEx/config/wubarrk.terroritysmellatory.cfg`, or Co
 | 0 - Server Sync | `LockConfiguration` | only admins change synced settings (on) |
 | 1 - Server | `RequireClientMod` | kick players without the mod (on). Protections run in each player's game, so a player without it is not bound by them. |
 | 1 - Server | `AdminsBypassProtection` | admins are never stopped by territory protections (on) |
+| 1 - Server | `MineWorldPieces` | world pieces no player built can be mined inside *Buildings cannot be damaged*, as *Harvesting* allows (on). Turn it off where towns are baked into the world. |
 | 1 - Server | `MaxRadius` | the largest radius or half-width a placement may have (600 m, up to 100 km) |
 | 1 - Server | `MaxTerritories` | territories per world (500) |
 | 1 - Server | `MaxParts` | the most parts one territory may have (16; 1 turns combining off) |

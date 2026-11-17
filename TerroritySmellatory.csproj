@@ -21,7 +21,7 @@
          (records are length-prefixed and versioned, Core/Territory.cs, so an older reader skips it), but
          it still needs a floor raise whenever an older client would enforce or show something wrong
          without it, as 0.2.0's parts do. -->
-    <TSVersion>0.5.0</TSVersion>
+    <TSVersion>0.5.1</TSVersion>
     <!-- 0.3.0: the runic barrier is enforced by whichever game simulates a creature (its ZDO owner) and by a
          visitor's own game; a 0.2.x client reads the new flags as nothing and would let the monsters it owns,
          and itself, walk straight in.

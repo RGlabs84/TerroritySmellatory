@@ -19,6 +19,14 @@ namespace TerroritySmellatory
     ///
     /// Wear from weather and loss of support go through ApplyDamage from UpdateWear, NOT through this RPC,
     /// and are deliberately left alone: a protected building still has to stand up.
+    ///
+    /// MINING (0.5.1). Some of the world's resources are WearNTear pieces, not rocks: dvergr black marble, Ashlands
+    /// grausten, the stone of ruins. The rule made them unminable. A player's pickaxe or axe hit on a piece NO player
+    /// built (no Piece, or a Piece with no creator) goes through while TSConfig.MineWorldPieces is on, for the people the
+    /// territory's Harvesting rule allows: everyone with it off, the owner and members with it on. Members are read from
+    /// the hit's attacker on whichever machine owns the piece; admin status is not, because only the hitter's own game
+    /// knows it, and 0.1.0 showed a rule that depends on who owns the piece is no rule. Ore veins and rocks (MineRock,
+    /// MineRock5, Destructible) never came through here.
     /// </remarks>
     [HarmonyPatch(typeof(WearNTear), "RPC_Damage")]
     internal static class StructureDamagePatch
@@ -28,7 +36,19 @@ namespace TerroritySmellatory
             if (hit == null || !TerritoryIndex.Any) return true;
 
             Territory t = TerritoryIndex.GoverningAt(__instance.transform.position);
-            return t == null || !t.Has(TerritoryFlags.StructureProtect);
+            return t == null || !t.Has(TerritoryFlags.StructureProtect) || IsMining(__instance, hit, t);
+        }
+
+        private static bool IsMining(WearNTear piece, HitData hit, Territory t)
+        {
+            if (!TSConfig.MineWorldPieces.Value) return false;
+            if (hit.m_damage.m_pickaxe <= 0f && hit.m_damage.m_chop <= 0f) return false;
+
+            Piece built = piece.GetComponent<Piece>();
+            if (built != null && built.GetCreator() != 0L) return false;
+
+            if (!(hit.GetAttacker() is Player player)) return false;
+            return !t.Has(TerritoryFlags.HarvestProtect) || t.IsMember(player.GetPlayerID());
         }
     }
 

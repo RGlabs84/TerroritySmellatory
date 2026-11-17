@@ -1,6 +1,6 @@
 {
   "name": "TerroritySmellatory",
-  "version_number": "0.5.0",
+  "version_number": "0.5.1",
   "website_url": "https://ravenirongames.com/",
   "description": "Admin-marked multiplayer territories: set the rules in a small panel, mark the ground with Infinity Hammer, and every player's game enforces them - protection, safe/war zones, no spawns or raids, sanctuary bonuses.",
   "dependencies": [

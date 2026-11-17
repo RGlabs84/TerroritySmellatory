@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1
+
+**Mining inside protected territories, and no border in dungeons.**
+
+- **World pieces can be mined again** inside a territory where *Buildings cannot be damaged*. Pieces no player built - dvergr black marble, Ashlands grausten, ruins, anything baked into the world - take a pickaxe or axe hit. Who may mine follows the territory's *Harvesting* rule: everyone with it off, the owner and members with it on. Everything a player built stays protected as before, and creatures, fire and other weapons still do nothing.
+- New server setting `MineWorldPieces` (on). Turn it off on a server whose towns are baked into the world: their pieces have no builder and count as world pieces.
+- Ore veins and rocks (copper, tin, silver, blacks7ar's OreMines nodes) were never stopped by the rule.
+- **The ground border is no longer drawn inside dungeons.** Its line landed on the dungeon's floor and walls and cut through modded mines.
+- Plays with 0.5.0 (ServerSync floor unchanged). A hit on a world piece is judged by the game that owns that piece, so it lands only once that player has 0.5.1 too.
+
 ## 0.5.0
 
 **Territory guards.** Ported from ValtimaOnline's town guards.

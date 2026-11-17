@@ -755,13 +755,13 @@ namespace TerroritySmellatory
             Section("Protection - applies to everyone who is not a member");
             Flag(t, TerritoryFlags.BuildProtect, "Building", "Placing, removing, repairing and digging.");
             Flag(t, TerritoryFlags.AccessProtect, "Doors, chests & stations", "Everything a ward locks: doors, chests, portals, signs, stands, fermenters, beehives...");
-            Flag(t, TerritoryFlags.HarvestProtect, "Harvesting", "Crops, berries, mushrooms and other pickables.");
+            Flag(t, TerritoryFlags.HarvestProtect, "Harvesting", "Crops, berries, mushrooms and other pickables, and mining world pieces (black marble, grausten, ruins) where buildings cannot be damaged.");
 
             // Not under Protection: that section's heading says "who is not a member", and a door closes whoever opened it.
             // It is the first row of World so it sits just below the doors rule it goes with.
             Section("World");
             Flag(t, TerritoryFlags.AutoCloseDoors, "Doors close by themselves", DoorHint());
-            Flag(t, TerritoryFlags.StructureProtect, "Buildings cannot be damaged", "No hit harms them: creatures, fire and every player, members and admins included. Take a piece down with the hammer instead. Weather and support still apply.");
+            Flag(t, TerritoryFlags.StructureProtect, "Buildings cannot be damaged", "No hit harms what players built: creatures, fire and every player, members and admins included. Take a piece down with the hammer instead. Weather and support still apply. World pieces (black marble, grausten, ruins) can still be mined, as Harvesting allows.");
             Flag(t, TerritoryFlags.NoMonsterSpawns, "No monster spawns", "World spawns, raid spawns, spawn points and nests. Animals still spawn.");
             // Two steps in, each under the label above it and each greyed - never hidden - while what it needs is off.
             SubFlag(t, TerritoryFlags.RunicBarrier, Applies(t, TerritoryFlags.NoMonsterSpawns), 1, "Runic barrier",
