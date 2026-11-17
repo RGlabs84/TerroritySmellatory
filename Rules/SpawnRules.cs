@@ -30,7 +30,8 @@ namespace TerroritySmellatory
             if (_cache.TryGetValue(key, out bool hostile)) return hostile;
 
             hostile = false;
-            if (prefab.GetComponent<MonsterAI>() != null)
+            // A territory's guards are Dvergr with a MonsterAI, but not monsters: the barrier lets them through (0.5.0, Rules/Guards.cs)
+            if (!Guards.IsGuardPrefab(prefab.name) && prefab.GetComponent<MonsterAI>() != null)
             {
                 Character c = prefab.GetComponent<Character>();
                 hostile = c == null || (c.m_faction != Character.Faction.Players && c.m_faction != Character.Faction.PlayerSpawned);

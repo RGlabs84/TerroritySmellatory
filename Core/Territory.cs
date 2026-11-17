@@ -86,6 +86,18 @@ namespace TerroritySmellatory
         /// territory by default, and in no default set, so none changes by upgrading.
         /// </summary>
         MapNameOnly = 1 << 14,
+
+        // 0.5.0 - a rule that stands alone (no prerequisite), OFF unless an admin switches it on, like the door closer: not in
+        // DefaultFlags or DraftFlags, so no territory gains guards by upgrading and a new one does not start with them.
+
+        /// <summary>
+        /// Guards stand posted inside (Rules/Guards.cs): Dvergr the SERVER keeps at posts round the middle of each part
+        /// (GuardMath.Posts), who fight any monster that comes into their sight and walk back to their post, cannot be hurt and
+        /// never turn on a player. A player inside who types a call word in chat ("guards") brings the nearest of them against
+        /// the monster after them, or a guard who appears beside them and goes when the fight is over. Switched off, or the
+        /// territory gone, the server takes its guards away; moved, it moves them. Ported from ValtimaOnline's town guards.
+        /// </summary>
+        Guards = 1 << 15,
     }
 
     /// <summary>PvP inside a territory. PERSISTED - append only.</summary>
@@ -174,7 +186,7 @@ namespace TerroritySmellatory
             TerritoryFlags.StructureProtect | TerritoryFlags.NoMonsterSpawns | TerritoryFlags.NoRaids |
             TerritoryFlags.NoSkillLoss | TerritoryFlags.Sanctuary | TerritoryFlags.Announce | TerritoryFlags.ShowOnMap |
             TerritoryFlags.ShowBorder | TerritoryFlags.RunicBarrier | TerritoryFlags.BarrierKeepsOutVisitors |
-            TerritoryFlags.AutoCloseDoors | TerritoryFlags.MapNameOnly;
+            TerritoryFlags.AutoCloseDoors | TerritoryFlags.MapNameOnly | TerritoryFlags.Guards;
 
         /// <summary>
         /// What a record with no "flags" key in the territory file reads as, and a bare <c>new Territory()</c>. Kept exactly

@@ -388,7 +388,7 @@ namespace TerroritySmellatory.Tests
             Check(Inheritance.SetsItself(Circle(3, 0f, 0f, 5f, TerritoryFlags.None)).Count == 0 && Inheritance.SetsItself(null).Count == 0, "a top-level territory sets 'nothing' (it sets everything: there is no parent to compare with)");
             bool allLabelled = true;
             foreach (TerritoryFlags rule in Enum.GetValues(typeof(TerritoryFlags)))
-                if (rule != TerritoryFlags.None && Inheritance.RuleLabel(rule) == rule.ToString() && rule != TerritoryFlags.Sanctuary) allLabelled = false;
+                if (rule != TerritoryFlags.None && Inheritance.RuleLabel(rule) == rule.ToString() && rule != TerritoryFlags.Sanctuary && rule != TerritoryFlags.Guards) allLabelled = false;   // "Guards" is its own label
             Check(allLabelled, "every rule has a label of its own");
 
             // Refresh: a copy being edited follows the parent's CURRENT values.
@@ -887,7 +887,7 @@ namespace TerroritySmellatory.Tests
             JObject o2 = (JObject)list[1], o3 = (JObject)list[2];
             Check((int)o2["parent"] == 1 && o2["pvp"] == null && o2["flags"] == null && o2["color"] == null && o2["enterMessage"] == null, "'Same' is written as its ground and its parent");
             Check(o3["flags"] is JObject changed && changed.Count == 2 && (string)o3["pvp"] == "ForcedOff" && o3["color"] != null && o3["ownerId"] == null, "'Differs' is written with what it sets");
-            Check((int)JObject.Parse(linked)["version"] == 5 && (long)JObject.Parse(linked)["worldUid"] == 7, "version 5, the header kept");
+            Check((int)JObject.Parse(linked)["version"] == 6 && (long)JObject.Parse(linked)["worldUid"] == 7, "version 6, the header kept");
             string again = WorldFileCheck.Link(linked, out string second);
             Check(again == linked && second.StartsWith("linked 0 of"), $"linking the result again changes nothing [{second}]");
 

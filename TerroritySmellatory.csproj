@@ -21,7 +21,7 @@
          (records are length-prefixed and versioned, Core/Territory.cs, so an older reader skips it), but
          it still needs a floor raise whenever an older client would enforce or show something wrong
          without it, as 0.2.0's parts do. -->
-    <TSVersion>0.4.3</TSVersion>
+    <TSVersion>0.5.0</TSVersion>
     <!-- 0.3.0: the runic barrier is enforced by whichever game simulates a creature (its ZDO owner) and by a
          visitor's own game; a 0.2.x client reads the new flags as nothing and would let the monsters it owns,
          and itself, walk straight in.
@@ -38,7 +38,10 @@
          priority and disagree with the server and everyone else about who is in a town. And an admin on 0.3.x who saved a
          sub-territory's rules would send a record with no parent and no follow marks (record 2), which the server can only read as
          "take this territory out of its parent and keep these values as its own" - the link would be lost from the panel. -->
-    <TSSyncFloor>0.4.0</TSSyncFloor>
+    <!-- 0.5.0: guards (TerritoryFlags.Guards, bit 15). A 0.4.x admin's panel does not know the bit and its CleanFlags would strip it from
+         every territory it saves a rule change to, taking that territory's guards away; and a 0.4.x client has no guard prefabs, so it
+         would see nothing where everyone else sees a guard, and could not call one. -->
+    <TSSyncFloor>0.5.0</TSSyncFloor>
     <Version>$(TSVersion)</Version>
 
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -59,6 +62,9 @@
   <ItemGroup>
     <Compile Remove="tests/**" />
     <None Remove="tests/**" />
+    <!-- The Unity editor script that builds the guard bundle (unity/Editor) and the project it runs in compile in Unity, not here. -->
+    <Compile Remove="unity/**;unity-project/**" />
+    <None Remove="unity/**;unity-project/**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -132,6 +138,15 @@
       <HintPath>..\libs-Tools\Unity.TextMeshPro.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- The guards' bodies (Visuals/GuardBodies.cs): their clips through a PlayableGraph, and the bundle they come in. -->
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\libs-Tools\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\libs-Tools\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>..\libs-Tools\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>false</Private>
@@ -144,6 +159,13 @@
     <Compile Include="..\libs-Tools\ServerSync.cs" />
     <Compile Include="..\libs-Tools\SharedUI\GiltFrameTheme.cs" />
     <Compile Include="..\libs-Tools\SharedUI\UIFocus.cs" />
+  </ItemGroup>
+
+  <!-- The guards' Meshy bodies (Visuals/GuardBodies.cs), EMBEDDED in the DLL: nothing to ship beside it. Built from ValtimaOnline's
+       guard bakes by tools/build-guard-bodies.sh (Unity 6000.0.61f1). A build without the file still works: the guards keep the Dvergr's
+       look and say so in the log. -->
+  <ItemGroup Condition="Exists('Assets/terroritysmellatory-guards.bundle')">
+    <EmbeddedResource Include="Assets/terroritysmellatory-guards.bundle" LogicalName="TerroritySmellatory.terroritysmellatory-guards.bundle" />
   </ItemGroup>
 
   <!-- ─────────────────────────────────────────────────────────────

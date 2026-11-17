@@ -23,6 +23,7 @@ namespace TerroritySmellatory.Tests
         static partial void PanelGroups();        // tests/PanelTests.cs - 0.4.0: the admin panel's arithmetic (UI/PanelMath.cs)
         static partial void PartsGroups();        // tests/PartsTests.cs - 0.4.0: a territory list too big for one message goes in pieces
         static partial void FogGroups();          // tests/MapFogTests.cs - 0.4.1: territories only over uncovered map; the minimap name on one line
+        static partial void GuardGroups();        // tests/GuardTests.cs - 0.5.0: where a territory's guards stand, and the call word
 
         private static int Main(string[] args)
         {
@@ -73,6 +74,9 @@ namespace TerroritySmellatory.Tests
 
             // 0.4.1 groups.
             FogGroups();
+
+            // 0.5.0 groups.
+            GuardGroups();
 
             Console.WriteLine();
             Console.WriteLine($"{_passed} passed, {_failed} failed");

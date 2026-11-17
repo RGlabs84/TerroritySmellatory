@@ -22,3 +22,6 @@ HexiumDist/*-v*/
 .claude/settings.local.json
 .claude/worktrees/
 *.log
+
+# The Unity project tools/build-guard-bodies.sh builds the guard bundle in (its output is Assets/terroritysmellatory-guards.bundle, kept)
+unity-project/

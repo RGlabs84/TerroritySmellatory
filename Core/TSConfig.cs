@@ -66,6 +66,11 @@ namespace TerroritySmellatory
         internal static ConfigEntry<float> AutoCloseDelay;
         internal static ConfigEntry<float> AutoClosePlayerClearance;
         internal static ConfigEntry<string> AutoCloseExcludedPrefabs;
+        internal static ConfigEntry<int> GuardsPerPart;
+        internal static ConfigEntry<int> MaxGuardsPerTerritory;
+        internal static ConfigEntry<float> GuardCallRadius;
+        internal static ConfigEntry<float> GuardCallCooldown;
+        internal static ConfigEntry<float> GuardLingerSeconds;
 
         // 2 - Client (personal; never synced)
         internal static ConfigEntry<KeyboardShortcut> PanelKey;
@@ -80,6 +85,7 @@ namespace TerroritySmellatory
         internal static ConfigEntry<bool> MinimapName;
         internal static ConfigEntry<bool> BarrierEffects;
         internal static ConfigEntry<float> PanelScale;
+        internal static ConfigEntry<string> GuardCallWords;
 
         // 3 - Infinity Hammer (admin machines only; inert without IH)
         internal static ConfigEntry<bool> WriteHammerTool;
@@ -135,6 +141,33 @@ namespace TerroritySmellatory
                 "Comma-separated door prefab names that are never closed by themselves. Drawbridges are left out by default because raising one under a player halfway across is worse than leaving it down, and window shutters because nobody wants their light shut off. Case-insensitive. Key doors and one-way dungeon doors are always left alone.");
             Sync.AddConfigEntry(AutoCloseExcludedPrefabs);
 
+            // The five below serve the Guards rule (Rules/Guards.cs). The server posts the guards and answers the calls; they
+            // are synced so the panel quotes the server's numbers, and so a client's own cooldown matches the server's.
+            GuardsPerPart = cfg.Bind("1 - Server", "GuardsPerPart", 2,
+                new ConfigDescription("How many guards stand posted in each part of a territory with 'Guards', in a ring round the part's middle, facing out.",
+                    new AcceptableValueRange<int>(1, 8)));
+            Sync.AddConfigEntry(GuardsPerPart);
+
+            MaxGuardsPerTerritory = cfg.Bind("1 - Server", "MaxGuardsPerTerritory", 8,
+                new ConfigDescription("The most guards posted in one territory, however many parts it has. The first parts are served first.",
+                    new AcceptableValueRange<int>(1, 32)));
+            Sync.AddConfigEntry(MaxGuardsPerTerritory);
+
+            GuardCallRadius = cfg.Bind("1 - Server", "GuardCallRadius", 80f,
+                new ConfigDescription("When a player calls the guards, a posted guard of their territory this many metres from them answers. When none is that close, a guard appears beside the caller and goes when the fight is over.",
+                    new AcceptableValueRange<float>(10f, 400f)));
+            Sync.AddConfigEntry(GuardCallRadius);
+
+            GuardCallCooldown = cfg.Bind("1 - Server", "GuardCallCooldown", 10f,
+                new ConfigDescription("Seconds before the same player can call the guards again. The server keeps it too.",
+                    new AcceptableValueRange<float>(1f, 300f)));
+            Sync.AddConfigEntry(GuardCallCooldown);
+
+            GuardLingerSeconds = cfg.Bind("1 - Server", "GuardLingerSeconds", 40f,
+                new ConfigDescription("A guard who appeared for a call stays this many seconds after the fight is over, then goes.",
+                    new AcceptableValueRange<float>(5f, 300f)));
+            Sync.AddConfigEntry(GuardLingerSeconds);
+
             PanelKey = cfg.Bind("2 - Client", "PanelKey", new KeyboardShortcut(KeyCode.Home),
                 "Opens and closes the territory panel. The console command 'terr' does the same.");
 
@@ -172,6 +205,9 @@ namespace TerroritySmellatory
 
             PanelScale = cfg.Bind("2 - Client", "PanelScale", 1f,
                 new ConfigDescription("Size of the territory panel's text and layout.", new AcceptableValueRange<float>(0.7f, 2f)));
+
+            GuardCallWords = cfg.Bind("2 - Client", "GuardCallWords", "guards",
+                "Words that call the guards when you type them in chat inside a territory with guards, comma separated, matched as whole words in any case (\"Guards!\" works, \"safeguards\" does not). Empty: you never call them.");
 
             WriteHammerTool = cfg.Bind("3 - Infinity Hammer", "WriteHammerTool", true,
                 "When Infinity Hammer is installed, keep 'infinity_tools_terroritysmellatory.yaml' in the config folder so the Territory tool appears in the hammer's tool menu. Delete the file's first line to take it over and stop the mod rewriting it.");

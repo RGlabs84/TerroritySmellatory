@@ -96,6 +96,8 @@ namespace TerroritySmellatory
             Guarded("borders", Borders.Tick);
             // The server's own rule, run by no client: a static method group like the rest (Rules/DoorCloser.cs).
             Guarded("doors", DoorCloser.Tick);
+            // The server keeps every territory's guards at their posts (Rules/Guards.cs); a client returns at once.
+            Guarded("guards", Guards.Tick);
             Guarded("panel", TerritoryPanel.Tick);
         }
 

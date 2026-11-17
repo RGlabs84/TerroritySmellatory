@@ -63,6 +63,9 @@ namespace TerroritySmellatory
 
         public static long WorldUid => _worldUid;
 
+        /// <summary>A world's file has been loaded (or found absent) this session: the list is the world's, not the empty one before it.</summary>
+        public static bool IsLoaded => !string.IsNullOrEmpty(_worldName);
+
         /// <summary>Loads the current world's file if it is not the one already loaded. True when it (re)loaded.</summary>
         public static bool EnsureLoaded()
         {

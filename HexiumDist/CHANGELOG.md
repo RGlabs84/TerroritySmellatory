@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0
+
+**Territory guards.** Ported from ValtimaOnline's town guards.
+
+- **New rule: Guards** (panel → Rules → World, off by default; no existing territory gains it). The server posts guards in a ring round the middle of each part of the territory, facing out: `GuardsPerPart` (2) a part, at most `MaxGuardsPerTerritory` (8). They hold their post, fight any monster that comes into their sight and walk back afterwards. A floor built over a post is found by the first game that wakes the guard, so nobody is shut under a hall.
+- **Call them.** Type *guards* in chat inside a territory with guards (a whole word, any case; the client setting `GuardCallWords` chooses the words). If a monster that is after somebody is within 40 m, the nearest guard of that territory within `GuardCallRadius` (80 m) runs to fight it; with none that close, a guard appears beside you and leaves `GuardLingerSeconds` (40 s) after the fight. The server decides every call and holds each player to `GuardCallCooldown` (10 s). The answer shows top-left.
+- **The guards** are ValtimaOnline's Meshy town guards - a man's and a woman's look - carrying the game's iron atgeir, swung two-handed. The bodies are **embedded in the DLL** (a 12 MB guards-only bundle): nothing else to install. They cannot be hurt, never attack players or buildings, drop nothing, pass the runic barrier and are not counted as monsters by the spawn rules. Press E on one to talk.
+- Moving or reshaping a territory moves its guards; switching the rule off or deleting the territory takes them away. While the territory file cannot be read, the server takes no guard away.
+- **Every player and the server need 0.5.0** (ServerSync floor 0.5.0): a 0.4.x admin's panel would strip the new rule, and a 0.4.x game has no guards to show.
+- The territory file is now **version 6** (one new rule name, `Guards`); a 0.4.x server rolled back to will not save over it. Older files load as before.
+- New settings: `GuardsPerPart`, `MaxGuardsPerTerritory`, `GuardCallRadius`, `GuardCallCooldown`, `GuardLingerSeconds` (server-synced), `GuardCallWords` (client).
+- Two new connection messages, `TerroritySmellatory_GuardCall` (a player's call, up) and `TerroritySmellatory_GuardNotice` (the answer, down). A server with an RPC whitelist must allow them.
+- Verified: 0 warnings; `refcheck` OK on the client and the dedicated server against Valheim 1.0.21 (58 Harmony targets); 8,392 off-game checks including 6 new guard groups. Not yet seen in a world.
+
+## 0.4.4
+
+**One store page for every store.**
+
+- The store page was rewritten in the new layout and is now the same on every store; the website link now goes to https://ravenirongames.com/.
+- No change to the mod: `TerroritySmellatory.dll` is the same file as in 0.4.3.
+
 ## 0.4.3
 
 **Rebuilt and checked against Valheim 1.0.21 (network 41).**

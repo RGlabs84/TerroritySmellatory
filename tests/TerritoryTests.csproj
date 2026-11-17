@@ -44,6 +44,7 @@
     <Compile Include="../Rules/BannerPlan.cs" Link="Mod/BannerPlan.cs" />
     <Compile Include="../Rules/BarrierMath.cs" Link="Mod/BarrierMath.cs" />
     <Compile Include="../Rules/DoorMath.cs" Link="Mod/DoorMath.cs" />
+    <Compile Include="../Rules/GuardMath.cs" Link="Mod/GuardMath.cs" />
     <Compile Include="../Visuals/BarrierPattern.cs" Link="Mod/BarrierPattern.cs" />
     <Compile Include="../Visuals/BarrierRuneGlyphs.cs" Link="Mod/BarrierRuneGlyphs.cs" />
     <Compile Include="../Visuals/ExploredBits.cs" Link="Mod/ExploredBits.cs" />

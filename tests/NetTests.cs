@@ -59,7 +59,7 @@ namespace TerroritySmellatory.Tests
             Check(NetSameParts(a, back.Territories[0]), "every extra part exactly, in order");
             Check(back.Territories[0].PartCount == 5 && back.Territories[1].PartCount == 1, "part counts");
 
-            Check(json.Contains("\"version\": 5"), "written as file version 5");
+            Check(json.Contains("\"version\": 6"), "written as file version 6");
             Check(NetCount(json, "\"parts\"") == 1, "only the compound territory has a \"parts\" key; one marked once has none");
             Check(json.Contains("\"shape\": \"Square\""), "a part's shape is written as its name");
             Check(json.IndexOf("\"yaw\"", StringComparison.Ordinal) < json.IndexOf("\"parts\"", StringComparison.Ordinal) &&
@@ -333,8 +333,8 @@ namespace TerroritySmellatory.Tests
             // character, but for the version it now says. No "parts" key appears on a territory marked once, and
             // no barrier flag appears on a territory that never had one: upgrading turns nothing on.
             string rewritten = TerritoryJson.Write(f).Replace("\r\n", "\n");
-            string original = V011File.Replace("\r\n", "\n").Replace("\"version\": 1,", "\"version\": 5,");
-            Check(rewritten == original, "saved again, the 0.1.1 file is identical except \"version\": 5");
+            string original = V011File.Replace("\r\n", "\n").Replace("\"version\": 1,", "\"version\": 6,");
+            Check(rewritten == original, "saved again, the 0.1.1 file is identical except \"version\": 6");
             Check(!rewritten.Contains("\"parts\"") && !rewritten.Contains("Barrier"), "and has no \"parts\" key and no barrier flag");
         }
 
@@ -350,8 +350,8 @@ namespace TerroritySmellatory.Tests
             var written = new TerritoryJson.FileData { WorldName = "Midgard", WorldUid = 42L, NextId = 43 };
             written.Territories.Add(keep);
             written.Territories.Add(Circle(9, 5f, 6f, 7f, TerritoryFlags.NoMonsterSpawns));
-            string v2 = TerritoryJson.Write(written).Replace("\"version\": 5", "\"version\": 2");
-            Check(v2.Contains("\"version\": 2") && !v2.Contains("\"version\": 5"), "the fixture says version 2");
+            string v2 = TerritoryJson.Write(written).Replace("\"version\": 6", "\"version\": 2");
+            Check(v2.Contains("\"version\": 2") && !v2.Contains("\"version\": 6"), "the fixture says version 2");
 
             TerritoryJson.FileData f = TerritoryJson.Read(v2);
             Check(f.Version == 2 && !f.FromNewerBuild, "a version 2 file is not from a newer build: the store loads it writable");
@@ -366,7 +366,7 @@ namespace TerroritySmellatory.Tests
                 Check(!t.Has(TerritoryFlags.RunicBarrier) && !t.Has(TerritoryFlags.BarrierKeepsOutVisitors),
                     $"0.2.x record {i + 1} has no barrier: one that keeps monsters from spawning does not gain one by upgrading");
             }
-            Check(TerritoryJson.Write(f) == v2.Replace("\"version\": 2", "\"version\": 5"), "saved again it is identical except \"version\": 5");
+            Check(TerritoryJson.Write(f) == v2.Replace("\"version\": 2", "\"version\": 6"), "saved again it is identical except \"version\": 6");
         }
 
         private static void FileFromNewerBuild()
@@ -377,14 +377,14 @@ namespace TerroritySmellatory.Tests
             // the store keeps it read-only (TerritoryStore.Load). 0.1.x has no such guard, and would drop 0.2.0's parts
             // exactly that way; 0.2.x's guard is what holds it off a version 3 file, and this one is the same guard a
             // step on.
-            TerritoryJson.FileData newer = TerritoryJson.Read(@"{ ""version"": 6, ""worldName"": ""Midgard"", ""nextId"": 3, ""territories"": [
+            TerritoryJson.FileData newer = TerritoryJson.Read(@"{ ""version"": 7, ""worldName"": ""Midgard"", ""nextId"": 3, ""territories"": [
   { ""id"": 1, ""name"": ""Keep"", ""shape"": ""Circle"", ""x"": 10, ""z"": 20, ""halfX"": 30,
     ""barrier"": { ""runes"": true, ""colour"": ""#3FA9FF"" }, ""flags"": [ ""BuildProtect"", ""SkyfallWard"" ],
     ""parts"": [ { ""shape"": ""Square"", ""x"": 70, ""z"": 20, ""halfX"": 15, ""glow"": 2 } ] },
   { ""id"": 2, ""name"": ""Market"" }
 ] }");
-            Check(TerritoryJson.FileVersion == 5, "this build writes file version 5");
-            Check(newer.Version == 6 && newer.FromNewerBuild, "a version 6 file is from a newer build");
+            Check(TerritoryJson.FileVersion == 6, "this build writes file version 6");
+            Check(newer.Version == 7 && newer.FromNewerBuild, "a version 7 file is from a newer build");
             Check(newer.Territories.Count == 2 && newer.Territories[0].PartCount == 2 && newer.Territories[0].Flags == TerritoryFlags.BuildProtect &&
                   newer.Territories[0].GetPart(1).Kind == TerritoryShapeKind.Square,
                 "its territories read whole, skipping the key and the flag name this build does not know");
@@ -706,7 +706,7 @@ namespace TerroritySmellatory.Tests
             // A 0.2.x server, rolled back to, must refuse to save over this file. Its guard is "version > 2" on the
             // number in the file - so what matters is the number this build actually WRITES.
             TerritoryJson.FileData reread = TerritoryJson.Read(json);
-            Check(reread.Version == 5 && reread.Version > 3, "the file says version 5, above the 3 that 0.3.0 and 0.3.1 let through and the 2 that 0.2.x does");
+            Check(reread.Version == 6 && reread.Version > 3, "the file says version 6, above the 3 that 0.3.0 and 0.3.1 let through and the 2 that 0.2.x does");
             Check(!reread.FromNewerBuild, "and this build itself still saves it");
 
             // THE WIRE: the int carries both bits, in a record, in a snapshot and in a request.

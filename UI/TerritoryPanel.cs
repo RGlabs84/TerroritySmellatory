@@ -769,6 +769,7 @@ namespace TerroritySmellatory
             SubFlag(t, TerritoryFlags.BarrierKeepsOutVisitors, Applies(t, TerritoryFlags.NoMonsterSpawns) && Applies(t, TerritoryFlags.RunicBarrier), 2, "Keep non-members out too",
                 "Players who are not members are held at the edge as well. Members and admins pass.");
             Flag(t, TerritoryFlags.NoRaids, "No raids", "A raid never picks a player standing here.");
+            Flag(t, TerritoryFlags.Guards, "Guards", GuardHint());
 
             Section("Players inside");
             Flag(t, TerritoryFlags.NoSkillLoss, "No skill loss on death", null);
@@ -820,6 +821,27 @@ namespace TerroritySmellatory
                 _doorHint = $"A door or gate left open shuts after {delay.ToString("0.#", CultureInfo.InvariantCulture)} s{near}, whoever opened it. Drawbridges and window shutters are left alone. Times are set by the server.";
             }
             return _doorHint;
+        }
+
+        // Like the door hint: it quotes the server's synced numbers, so it is rebuilt only when they change.
+        private static string _guardHint;
+        private static int _guardHintPer = -1, _guardHintMax = -1;
+        private static string _guardHintWords;
+
+        private static string GuardHint()
+        {
+            int per = TSConfig.GuardsPerPart.Value, max = TSConfig.MaxGuardsPerTerritory.Value;
+            string words = TSConfig.GuardCallWords.Value ?? "";
+            if (_guardHint == null || per != _guardHintPer || max != _guardHintMax || words != _guardHintWords)
+            {
+                _guardHintPer = per;
+                _guardHintMax = max;
+                _guardHintWords = words;
+                string call = GuardMath.FirstWord(words);
+                _guardHint = $"Guards posted round its middle ({per} a part, at most {max}). They fight monsters that come into sight, cannot be hurt and never turn on a player." +
+                             (call.Length > 0 ? $" Type \"{call}\" in chat inside and the nearest comes to fight what is after you." : "");
+            }
+            return _guardHint;
         }
 
         private static void DrawEditingBanner()

@@ -16,6 +16,10 @@ namespace UnityEngine
 
         public static Vector3 zero => new Vector3(0f, 0f, 0f);
         public static Vector3 up => new Vector3(0f, 1f, 0f);
+        public static Vector3 forward => new Vector3(0f, 0f, 1f);
+        public Vector3 normalized { get { float m = magnitude; return m > 1e-5f ? new Vector3(x / m, y / m, z / m) : zero; } }
+        public static float Dot(Vector3 a, Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
+        public static float Distance(Vector3 a, Vector3 b) => (a - b).magnitude;
 
         public float sqrMagnitude => x * x + y * y + z * z;
         public float magnitude => (float)Math.Sqrt(sqrMagnitude);
@@ -68,6 +72,9 @@ namespace UnityEngine
     {
         public const float PI = (float)Math.PI;
         public const float Epsilon = 1.401298E-45f;
+        public const float Deg2Rad = (float)(Math.PI / 180.0);
+        public const float Rad2Deg = (float)(180.0 / Math.PI);
+        public static float Atan2(float y, float x) => (float)Math.Atan2(y, x);
 
         public static float Max(float a, float b) => a > b ? a : b;
         public static float Max(float a, float b, float c) => Max(Max(a, b), c);

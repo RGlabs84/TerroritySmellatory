@@ -82,6 +82,16 @@ namespace TerroritySmellatory
         /// </summary>
         internal static int PartBytes = 64 * 1024;
 
+        /// <summary>
+        /// 0.5.0: a player calls the guards (Rules/Guards.cs). Client to server, on the caller's own ZRpc, carrying the ZDOID of the monster
+        /// their game picked; the server checks everything itself and knows the caller from the connection. Not an admin request, so it is
+        /// not in the Request set: any player in a territory with guards may send it, and the server's cooldown holds each to one a while.
+        /// </summary>
+        internal const string RpcGuardCall = "TerroritySmellatory_GuardCall";
+
+        /// <summary>0.5.0: the server's one-line answer to a guard call ("A guard answers your call."). Server to client, on the same ZRpc.</summary>
+        internal const string RpcGuardNotice = "TerroritySmellatory_GuardNotice";
+
         [Flags]
         private enum SnapshotFlags
         {

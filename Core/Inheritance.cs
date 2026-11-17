@@ -436,6 +436,7 @@ namespace TerroritySmellatory
                 case TerritoryFlags.BarrierKeepsOutVisitors: return "Keep non-members out";
                 case TerritoryFlags.AutoCloseDoors: return "Doors close by themselves";
                 case TerritoryFlags.MapNameOnly: return "Name only on the map";
+                case TerritoryFlags.Guards: return "Guards";
                 default: return rule.ToString();
             }
         }

@@ -24,12 +24,14 @@ namespace TerroritySmellatory
                 // The peer is captured, not looked up: the request arrived on THIS connection, which is the
                 // whole of its identity.
                 peer.m_rpc.Register<ZPackage>(Protocol.RpcRequest, (rpc, pkg) => TerritoryServer.OnRequest(peer, pkg));
+                peer.m_rpc.Register<ZDOID>(Protocol.RpcGuardCall, (rpc, target) => Guards.OnPeerCall(peer, target));
             }
             else
             {
                 peer.m_rpc.Register<ZPackage>(Protocol.RpcSnapshot, TerritoryClient.OnSnapshot);
                 peer.m_rpc.Register<ZPackage>(Protocol.RpcSnapshotPart, TerritoryClient.OnSnapshotPart);
                 peer.m_rpc.Register<ZPackage>(Protocol.RpcResult, TerritoryClient.OnResult);
+                peer.m_rpc.Register<string>(Protocol.RpcGuardNotice, Guards.OnNotice);
             }
         }
     }

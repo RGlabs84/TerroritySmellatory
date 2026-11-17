@@ -258,7 +258,7 @@ namespace TerroritySmellatory.Tests
 
             // THE FILE AGAIN: saved and re-read, nothing lost - and version 4.
             string saved = TerritoryJson.Write(file);
-            Check(saved.Contains("\"version\": 5"), "saved as file version 5");
+            Check(saved.Contains("\"version\": 6"), "saved as file version 6");
             TerritoryJson.FileData again = TerritoryJson.Read(saved);
             Check(again.Territories.Count == 152 && again.Territories[0].PartCount == 3 && again.Territories[0].Has(TerritoryFlags.MapNameOnly), "and read back whole");
             Check(TerritoryJson.Write(again) == saved, "write -> read -> write is stable at this size");

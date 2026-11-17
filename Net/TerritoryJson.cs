@@ -61,6 +61,11 @@ namespace TerroritySmellatory
     /// "flags" object makes 0.3.2 refuse the whole file (its reader wants a list of names), which enforces nothing. Do not roll
     /// back a world that has sub-territories.
     ///
+    /// VERSION 6 (0.5.0) adds no key - one more flag name, Guards, which a 0.4.x server would skip as unknown and then drop on its
+    /// next save, taking every territory's guards with it. So the number moves, as it did for MapNameOnly: a 0.4.x server rolled
+    /// back to treats the file as a newer build's and does not save over it. A version 1 to 5 file loads here writable, and is
+    /// written as 6.
+    ///
     /// NEWER FILES. From 0.2.0, a file whose version is higher than this build writes is enforced as read but never
     /// saved over (FileData.FromNewerBuild), so a server rolled back from a later build keeps that build's keys
     /// until it runs it again. The guard has to be in the build a server rolls back TO, which is why it came with
@@ -69,7 +74,7 @@ namespace TerroritySmellatory
     /// </remarks>
     internal static class TerritoryJson
     {
-        internal const int FileVersion = 5;
+        internal const int FileVersion = 6;
 
         /// <summary>The most extra parts one territory record may claim on the wire: Territory.Read's own limit.</summary>
         internal const int WireMaxExtraParts = 4096;
