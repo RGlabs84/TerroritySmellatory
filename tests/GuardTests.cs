@@ -16,6 +16,7 @@ namespace TerroritySmellatory.Tests
             Run("guards: posts stand inside their part, round its middle, facing out", GuardPostsInside);
             Run("guards: posts follow the parts, the count per part and the cap; the same territory gives the same posts", GuardPostsCount);
             Run("guards: a moved territory moves its posts, and only then", GuardPostsMoved);
+            Run("guards: a post in the water stands on the nearest dry ground of its part (0.5.2)", GuardDryPosts);
             Run("guards: the call word is a whole word in any case", GuardCallWords);
             Run("guards: names and titles", GuardNames);
         }
@@ -108,6 +109,76 @@ namespace TerroritySmellatory.Tests
             List<GuardPost> again = GuardMath.Posts(three.Clone(), 2, 32);
             Check(again.Count == all.Count && again.Zip(all, (a, b) => a.X == b.X && a.Z == b.Z && a.Yaw == b.Yaw && a.Part == b.Part).All(x => x),
                 "the same territory gives exactly the same posts (the server compares them every few seconds)");
+        }
+
+        private static void GuardDryPosts()
+        {
+            // New Dawn's The Nook (2026-11-20): a 20 m circle drawn over the harbour, its middle and both ring posts in the water
+            Territory nook = Circle(2, 69.98418f, -573.1506f, 20f, GuardFlagBit);
+            TerritoryShape part = nook.GetPart(0);
+            List<GuardPost> ring = GuardMath.Posts(nook, 2, 8);
+            Check(Mathf.Abs(ring[0].X - 75.64f) < 0.05f && Mathf.Abs(ring[0].Z + 567.49f) < 0.05f, "the Nook's post 1 is the one the server warned about (76, -567)");
+
+            // land north of z = -565 only: both ring posts (z -567.5 and -578.8) are in the water
+            Func<float, float, bool> north = (x, z) => z >= -565f;
+            var taken = new List<GuardPost>();
+            var moved = new List<GuardPost>();
+            foreach (GuardPost p in ring)
+            {
+                Check(!north(p.X, p.Z), $"post {p.Index + 1} starts in the water");
+                Check(GuardMath.TryDry(part, p, north, taken, out GuardPost d), $"post {p.Index + 1} finds dry ground");
+                Check(north(d.X, d.Z), $"post {p.Index + 1} now stands on it ({d.X:0.0}, {d.Z:0.0})");
+                Check(part.Contains(new Vector3(d.X, 0f, d.Z)), $"post {p.Index + 1} is still inside its part");
+                Check(Vector3.Distance(new Vector3(d.X, 0f, d.Z), part.Center) <= part.HalfX * GuardMath.DryReach + 0.01f, $"post {p.Index + 1} within {GuardMath.DryReach:P0} of the way to the edge");
+                Check(d.Index == p.Index && d.Part == p.Part, $"post {p.Index + 1} keeps its number and part (the ZDO key)");
+                Vector3 outward = new Vector3(d.X, 0f, d.Z) - part.Center;
+                Check(Vector3.Dot(Quaternion.Euler(0f, d.Yaw, 0f) * Vector3.forward, outward.normalized) > 0.999f, $"post {p.Index + 1} faces out from the middle");
+                taken.Add(d);
+                moved.Add(d);
+            }
+            Check(Vector3.Distance(new Vector3(moved[0].X, 0f, moved[0].Z), new Vector3(moved[1].X, 0f, moved[1].Z)) >= GuardMath.DrySpacing - 0.01f,
+                "two moved posts never share a spot");
+            // nearest first: post 1 (north-east) needs only a short step north; it lands no further than the shore line plus one grid step
+            Check(moved[0].Z >= -565f && moved[0].Z < -561f, $"post 1 moved just over the shore line, not to the far edge ({moved[0].Z:0.0})");
+
+            // the same ground gives the same spot, every time (the server compares it every 5 s)
+            var again = new List<GuardPost>();
+            foreach (GuardPost p in ring)
+            {
+                GuardMath.TryDry(part, p, north, again, out GuardPost d);
+                again.Add(d);
+            }
+            Check(again.Zip(moved, (a, b) => a.X == b.X && a.Z == b.Z && a.Yaw == b.Yaw).All(x => x), "the same answer twice");
+            Check(moved.All(d => GuardMath.SamePost(d, d.X, d.Z)), "a guard posted there is on its post");
+
+            // a dry post is left exactly where it is
+            Func<float, float, bool> allDry = (x, z) => true;
+            Check(GuardMath.TryDry(part, ring[0], allDry, null, out GuardPost same) && same.X == ring[0].X && same.Z == ring[0].Z && same.Yaw == ring[0].Yaw,
+                "a dry post does not move");
+            Check(GuardMath.TryDry(part, ring[0], null, null, out GuardPost none) && none.X == ring[0].X, "no ground check: the post stands");
+
+            // a part entirely under water has nowhere: no guard (the server's old warning)
+            Func<float, float, bool> sea = (x, z) => false;
+            Check(!GuardMath.TryDry(part, ring[0], sea, null, out _), "all water: no spot");
+
+            // dry ground only outside the part: still no spot, a guard never leaves its part
+            Func<float, float, bool> farShore = (x, z) => z >= -550f;     // 23 m north of the middle, past the 20 m edge
+            Check(!GuardMath.TryDry(part, ring[0], farShore, null, out _), "dry ground outside the part does not count");
+
+            // a turned rectangle: the moved post stays inside it
+            Territory rect = GuardRect(7, 0f, 0f, 30f, 6f, 37f);
+            TerritoryShape rp = rect.GetPart(0);
+            foreach (GuardPost p in GuardMath.Posts(rect, 4, 8))
+            {
+                Func<float, float, bool> east = (x, z) => x >= 15f;
+                if (!GuardMath.TryDry(rp, p, east, null, out GuardPost d)) { Check(false, $"rect post {p.Index + 1} finds the dry east end"); continue; }
+                Check(east(d.X, d.Z) && rp.Contains(new Vector3(d.X, 0f, d.Z)), $"rect post {p.Index + 1} dry and inside the turned rectangle");
+            }
+
+            // crowded: one tiny dry patch takes one guard; a second post that needs the same patch is refused rather than stacked
+            Func<float, float, bool> patch = (x, z) => (x - 70f) * (x - 70f) + (z + 560f) * (z + 560f) < 1.2f;
+            Check(GuardMath.TryDry(part, ring[0], patch, null, out GuardPost first), "the first post takes the tiny patch");
+            Check(!GuardMath.TryDry(part, ring[1], patch, new List<GuardPost> { first }, out _), "the second is not stacked on top of it");
         }
 
         private static void GuardPostsMoved()

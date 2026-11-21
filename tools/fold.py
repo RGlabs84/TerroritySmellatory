@@ -19,6 +19,7 @@ every build cannot be used to answer "is what I deployed what I built?".
 """
 
 import argparse
+import subprocess
 import hashlib
 import json
 import pathlib
@@ -77,7 +78,28 @@ def stage_dll(built_dll: pathlib.Path, dist: pathlib.Path) -> pathlib.Path:
     return staged
 
 
-def pack(dist: pathlib.Path, version: str, staged_dll: pathlib.Path) -> pathlib.Path:
+def stage_pdb(built_dll: pathlib.Path, dist: pathlib.Path) -> pathlib.Path:
+    """0.5.2: the PDB that matches the DLL ships beside it (owner rule 2026-11-20). libs-Tools/pdb_match.py checks the pair
+    (same build id, no home-folder path) before it is staged; a mismatch stops the fold."""
+    pdb = built_dll.with_suffix(".pdb")
+    if not pdb.exists():
+        raise SystemExit(f"fold: no PDB beside {built_dll}")
+    check = pathlib.Path.home() / "WubarrkCODING" / "libs-Tools" / "pdb_match.py"
+    if check.exists():
+        r = subprocess.run([sys.executable, str(check), str(built_dll)], capture_output=True, text=True)
+        print("fold: " + (r.stdout.strip().splitlines() or ["pdb_match: no output"])[-1])
+        if r.returncode != 0:
+            raise SystemExit(f"fold: pdb_match failed for {built_dll}:\n{r.stdout}{r.stderr}")
+    else:
+        print(f"fold: WARNING {check} not found: PDB staged unchecked")
+    staged = dist / "plugins" / pdb.name
+    if not staged.exists() or staged.read_bytes() != pdb.read_bytes():
+        shutil.copy2(pdb, staged)
+        print(f"fold: staged {staged.relative_to(dist.parent)}")
+    return staged
+
+
+def pack(dist: pathlib.Path, version: str, staged_dll: pathlib.Path, staged_pdb: pathlib.Path) -> pathlib.Path:
     out = dist / f"TerroritySmellatory-v{version}.zip"
     entries = []
     for name in PACKAGE_FILES:
@@ -85,6 +107,7 @@ def pack(dist: pathlib.Path, version: str, staged_dll: pathlib.Path) -> pathlib.
         if src.exists():
             entries.append((name, src))
     entries.append(("plugins/" + staged_dll.name, staged_dll))
+    entries.append(("plugins/" + staged_pdb.name, staged_pdb))
 
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for arcname, src in entries:
@@ -119,7 +142,8 @@ def main() -> int:
     stamp_manifest(dist / "manifest.json", args.version)
     stage_licence(dist)
     staged = stage_dll(dll, dist)
-    pack(dist, args.version, staged)
+    staged_pdb = stage_pdb(dll, dist)
+    pack(dist, args.version, staged, staged_pdb)
     return 0
 
 

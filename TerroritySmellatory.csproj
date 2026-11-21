@@ -21,7 +21,7 @@
          (records are length-prefixed and versioned, Core/Territory.cs, so an older reader skips it), but
          it still needs a floor raise whenever an older client would enforce or show something wrong
          without it, as 0.2.0's parts do. -->
-    <TSVersion>0.5.1</TSVersion>
+    <TSVersion>0.5.2</TSVersion>
     <!-- 0.3.0: the runic barrier is enforced by whichever game simulates a creature (its ZDO owner) and by a
          visitor's own game; a 0.2.x client reads the new flags as nothing and would let the monsters it owns,
          and itself, walk straight in.
@@ -48,6 +48,11 @@
     <Deterministic>true</Deterministic>
     <Optimize>true</Optimize>
     <DebugType>portable</DebugType>
+    <!-- 0.5.2: the PDB ships beside the DLL (owner rule 2026-11-20), so a player's error log has file and line numbers.
+         PathMap keeps the builder's home folder out of the DLL's PDB path; SourceLink would add it (and the git commit) back. -->
+    <PathMap>$(MSBuildProjectDirectory)=TerroritySmellatory</PathMap>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
 
     <OutputPath>bin/</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

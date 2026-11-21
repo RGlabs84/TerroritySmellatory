@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.2
+
+**Guards no longer go missing when a post lands in the water.**
+
+- A territory drawn over a harbour or a lake can have its ring of guard posts in the water. Until now the server posted nobody there (the log said "would stand under water ... no guard there"). Now that guard stands on the **nearest dry ground inside the same part**, still facing out from the middle, at least 2 m from the territory's other guards. Only when the whole part has no dry ground free does the post stay empty, as before.
+- The server logs it once: "post N would stand under water at (x, z): it stands on dry ground at (x, z) instead, D m off".
+- Posts already on dry ground do not move: no guard you have now is taken away or re-posted.
+- The package now ships `plugins/TerroritySmellatory.pdb`, so an error in a player's log shows file and line numbers. The build no longer records the builder's folders in either file.
+- Plays with 0.5.0 and 0.5.1 (ServerSync floor unchanged at 0.5.0). Only the server decides where guards stand, so updating the server is enough; players can update when they like.
+
 ## 0.5.1
 
 **Mining inside protected territories, and no border in dungeons.**

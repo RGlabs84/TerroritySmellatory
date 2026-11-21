@@ -59,6 +59,11 @@ The harness (`tests/`) compiles the mod's **real** `TerritoryShape`, `TerritoryG
 
 ## Verified vs not yet
 
+**Verified (2026-11-21, 0.5.2 - a guard post in the water moves to dry ground):**
+- 0 warnings. `refcheck` OK on both sides against 1.0.21: 11,987 references, 58 Harmony targets (none new). 8,421 off-game checks (29 new in one `guards:` group: New Dawn's The Nook as the case, land on one side; moved posts dry, inside their part, facing out, numbered as before, 2 m apart, the same answer twice; a dry post untouched; all water, dry ground only outside the part, a turned rectangle, a one-spot patch). A deliberately broken dry check fails 10 of them.
+- `pdb_match.py`: DLL and PDB match, no home path in either. Package: 7 entries (the PDB is new).
+- **Not yet seen in a world**: the moved guards on New Dawn (the server log line says where they went), and a local headless boot (`boot-check.sh` is not on this machine since the reinstall).
+
 **Verified (2026-11-17, 0.5.0 - territory guards):**
 - 0 warnings. `refcheck` OK on both sides against 1.0.21: 11,926 references, 58 Harmony targets (10 new: `ZNetScene.Awake`, `ObjectDB.Awake` / `CopyOtherDB`, `Character.RPC_Damage` / `ApplyDamage` / `GetHoverText` / `GetHoverName`, `BaseAI.IdleMovement`, `Chat.SendText`, `VisEquipment.SetRightHandEquipped`). 8,392 off-game checks, 6 new `guards:` groups (the flag, the posts inside every shape and turn, counts and cap, a moved territory moving its posts, the call word, names).
 - The guard bundle built with Unity 6000.0.61f1 through `tools/build-guard-bodies.sh` and verified by its own check (guard_v2 Generic with 19 clips, guard_warrior_f Humanoid with its Walk and Work, 17 shared Humanoid clips): 12.4 MB, embedded, DLL 12.9 MB.

@@ -234,6 +234,8 @@ namespace TerroritySmellatory
             _nextReconcile = 0f;
             _indexRevision = -1;
             _waterWarned.Clear();
+            _dry.Clear();
+            _movedLogged.Clear();
             _lastCall.Clear();
         }
 
@@ -249,9 +251,12 @@ namespace TerroritySmellatory
             foreach (Territory t in TerritoryIndex.All)
             {
                 if (t.Id <= 0 || !seenIds.Add(t.Id) || !t.Has(TerritoryFlags.Guards)) continue;
-                foreach (GuardPost p in GuardMath.Posts(t, perPart, max))
+                var taken = new List<GuardPost>();
+                foreach (GuardPost ring in GuardMath.Posts(t, perPart, max))
                 {
-                    long key = PostKey(t.Id, p.Index);
+                    long key = PostKey(t.Id, ring.Index);
+                    GuardPost p = OnDryGround(t, ring, key, taken);
+                    taken.Add(p);
                     want[key] = p;
                     territoryOf[key] = t;
                 }
@@ -289,6 +294,43 @@ namespace TerroritySmellatory
             ZDOMan.instance.DestroyZDO(z);
         }
 
+        // 0.5.2: a ring post in the water stands on the nearest dry ground of its part instead (GuardMath.TryDry). The ground does not
+        // change under a post, so each answer is kept until the post itself moves (its ring spot is the cache's check) or the scene resets.
+        private static readonly Dictionary<long, (float ringX, float ringZ, int takenHash, GuardPost at)> _dry =
+            new Dictionary<long, (float, float, int, GuardPost)>();
+        private static readonly HashSet<long> _movedLogged = new HashSet<long>();
+
+        private static GuardPost OnDryGround(Territory t, GuardPost ring, long key, List<GuardPost> taken)
+        {
+            int takenHash = TakenHash(taken);
+            if (_dry.TryGetValue(key, out var kept) && kept.ringX == ring.X && kept.ringZ == ring.Z && kept.takenHash == takenHash)
+                return kept.at;
+
+            GuardPost at = ring;
+            if (GuardMath.TryDry(t.GetPart(ring.Part), ring, IsDry, taken, out GuardPost dry))
+            {
+                at = dry;
+                if ((dry.X != ring.X || dry.Z != ring.Z) && _movedLogged.Add(key))
+                    Plugin.Log.LogInfo($"[guards] '{t.DisplayName}' post {ring.Index + 1} would stand under water at ({ring.X:0}, {ring.Z:0}): " +
+                                       $"it stands on dry ground at ({dry.X:0}, {dry.Z:0}) instead, {Vector2.Distance(new Vector2(ring.X, ring.Z), new Vector2(dry.X, dry.Z)):0} m off");
+            }
+            _dry[key] = (ring.X, ring.Z, takenHash, at);
+            return at;
+        }
+
+        // the posts placed before this one, as a number: a moved post keeps its distance from them, so its answer holds only while they hold
+        private static int TakenHash(List<GuardPost> taken)
+        {
+            unchecked
+            {
+                int h = 17;
+                foreach (GuardPost o in taken) h = (h * 31 + o.X.GetHashCode()) * 31 + o.Z.GetHashCode();
+                return h;
+            }
+        }
+
+        private static bool IsDry(float x, float z) => GroundY(x, z) >= WaterLevel - 0.3f;
+
         private static float WaterLevel => ZoneSystem.instance != null ? ZoneSystem.instance.m_waterLevel : 30f;
 
         // The world's own ground at a point (a dedicated server has no terrain loaded to ask). A floor built over the post is found by the first
@@ -306,7 +348,8 @@ namespace TerroritySmellatory
             if (ground < WaterLevel - 0.3f)
             {
                 if (_waterWarned.Add(PostKey(t.Id, p.Index)))
-                    Plugin.Log.LogWarning($"[guards] '{t.DisplayName}' post {p.Index + 1} would stand under water at ({p.X:0}, {p.Z:0}): no guard there");
+                    Plugin.Log.LogWarning($"[guards] '{t.DisplayName}' post {p.Index + 1} would stand under water at ({p.X:0}, {p.Z:0}) " +
+                                          "and its part has no dry ground free to move it to: no guard there");
                 return null;
             }
             // a Character falls onto the ground: it starts a hand above it

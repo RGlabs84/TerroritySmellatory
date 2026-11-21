@@ -79,6 +79,69 @@ namespace TerroritySmellatory
 
         private static float Ring(float half) => Mathf.Min(Mathf.Clamp(half * RingShare, RingMin, RingMax), half * RingInside);
 
+        // ---- a post in the water (0.5.2) ---------------------------------------------------------------------------------------------
+        // A ring post can land in a harbour or a lake: a part drawn over a quay has its middle, and so its ring, in the water (New Dawn's
+        // The Nook, 2026-11-20). Rather than post nobody there, the guard stands on the nearest dry ground inside the same part.
+
+        /// <summary>A post moved off the water may go this share of the way to its part's edge (along each axis): still inside.</summary>
+        internal const float DryReach = 0.9f;
+
+        /// <summary>The search steps: this many rings (DryReach / DryRings apart) of DrySpokes spots each.</summary>
+        internal const int DryRings = 18, DrySpokes = 24;
+
+        /// <summary>A moved post keeps at least this far from every other post of its territory.</summary>
+        internal const float DrySpacing = 2f;
+
+        /// <summary>
+        /// Where a post's guard stands: the post itself when <paramref name="isDry"/> says its spot is dry ground, otherwise the
+        /// dry spot inside the same part that is nearest to it, at least <see cref="DrySpacing"/> from every post in
+        /// <paramref name="taken"/>, facing out from the part's middle. False when the part has no such spot. The search is a
+        /// fixed grid in the part's own frame, tried nearest first with a fixed tie order, so the same territory over the same
+        /// ground always gives the same spot: the server compares it every few seconds (Guards.Reconcile, SamePost).
+        /// </summary>
+        internal static bool TryDry(TerritoryShape s, GuardPost p, Func<float, float, bool> isDry, IList<GuardPost> taken, out GuardPost dry)
+        {
+            dry = p;
+            if (isDry == null || isDry(p.X, p.Z)) return true;
+            if (s.IsEmpty) return false;
+
+            var spots = new List<(float d2, int order, float x, float z, float yaw)>(DryRings * DrySpokes);
+            Quaternion turn = Quaternion.Euler(0f, s.Yaw, 0f);
+            int order = 0;
+            for (int ring = 1; ring <= DryRings; ring++)
+            {
+                float share = DryReach * ring / DryRings;
+                for (int spoke = 0; spoke < DrySpokes; spoke++, order++)
+                {
+                    float a = 360f * spoke / DrySpokes * Mathf.Deg2Rad;
+                    Vector3 world = turn * new Vector3(s.HalfX * share * Mathf.Sin(a), 0f, s.HalfZ * share * Mathf.Cos(a));
+                    float x = s.CenterX + world.x, z = s.CenterZ + world.z;
+                    float dx = x - p.X, dz = z - p.Z;
+                    spots.Add((dx * dx + dz * dz, order, x, z, Mathf.Atan2(world.x, world.z) * Mathf.Rad2Deg));
+                }
+            }
+            spots.Sort((a, b) => a.d2 != b.d2 ? a.d2.CompareTo(b.d2) : a.order.CompareTo(b.order));
+
+            foreach (var spot in spots)
+            {
+                if (!isDry(spot.x, spot.z) || Crowded(spot.x, spot.z, taken)) continue;
+                dry = new GuardPost(p.Index, p.Part, spot.x, spot.z, spot.yaw);
+                return true;
+            }
+            return false;
+        }
+
+        private static bool Crowded(float x, float z, IList<GuardPost> taken)
+        {
+            if (taken == null) return false;
+            foreach (GuardPost o in taken)
+            {
+                float dx = o.X - x, dz = o.Z - z;
+                if (dx * dx + dz * dz < DrySpacing * DrySpacing) return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Does this chat line call the guards? A call word as a whole word, in any case: "Guards!", "help, guards" - not
         /// "safeguards". <paramref name="words"/> is the client's GuardCallWords: comma, semicolon or space separated.
